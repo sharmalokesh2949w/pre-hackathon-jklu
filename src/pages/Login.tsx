@@ -1,0 +1,134 @@
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Compass, Mail, Lock, LogIn, AlertCircle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+
+const Login: React.FC = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        login(data);
+        navigate('/');
+      } else {
+        setError(data.message || 'Login failed');
+      }
+    } catch (err) {
+      setError('Could not connect to server. Ensure backend is running.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-950 p-6">
+      <div className="w-full max-w-md space-y-8">
+        <div className="text-center">
+          <div className="inline-flex w-16 h-16 bg-sky-500 rounded-2xl items-center justify-center shadow-lg shadow-sky-500/20 mb-6">
+            <Compass className="text-white w-8 h-8" />
+          </div>
+          <h2 className="text-3xl font-bold">Welcome back to <span className="gradient-text">EduPath</span></h2>
+          <p className="text-slate-400 mt-2">Sign in to continue your career journey</p>
+        </div>
+
+        <div className="glass-card p-8 rounded-3xl border border-white/5 space-y-6">
+          {error && (
+            <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center gap-3 text-rose-400 text-sm">
+              <AlertCircle className="w-5 h-5 flex-shrink-0" />
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider px-1">Email Address</label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-3.5 w-5 h-5 text-slate-500" />
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-slate-900 border border-white/10 rounded-2xl px-12 py-3.5 text-sm focus:outline-none focus:border-sky-500/50 transition-all font-medium"
+                  placeholder="name@example.com"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex justify-between items-center px-1">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Password</label>
+                <a href="#" className="text-[10px] font-bold text-sky-400 hover:underline uppercase tracking-wider">Forgot?</a>
+              </div>
+              <div className="relative">
+                <Lock className="absolute left-4 top-3.5 w-5 h-5 text-slate-500" />
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-slate-900 border border-white/10 rounded-2xl px-12 py-3.5 text-sm focus:outline-none focus:border-sky-500/50 transition-all font-medium"
+                  placeholder="••••••••"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-4 bg-sky-500 hover:bg-sky-600 text-white rounded-2xl font-bold transition-all shadow-lg shadow-sky-500/25 flex items-center justify-center gap-2 group active:scale-[0.98] disabled:opacity-50"
+            >
+              {isLoading ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              ) : (
+                <>
+                  Sign In
+                  <LogIn className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </>
+              )}
+            </button>
+          </form>
+
+          <div className="relative text-center">
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/5"></div></div>
+            <span className="relative bg-slate-950 px-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Or continue with</span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <button className="flex items-center justify-center gap-2 py-3 bg-white/5 border border-white/10 rounded-2xl text-xs font-bold hover:bg-white/10 transition-colors">
+              Google
+            </button>
+            <button className="flex items-center justify-center gap-2 py-3 bg-white/5 border border-white/10 rounded-2xl text-xs font-bold hover:bg-white/10 transition-colors">
+              GitHub
+            </button>
+          </div>
+        </div>
+
+        <p className="text-center text-sm text-slate-400">
+          Don't have an account?{' '}
+          <Link to="/signup" className="text-sky-400 font-bold hover:underline">Create Account</Link>
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default Login;
