@@ -1,19 +1,22 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
-interface User {
+export interface User {
   _id: string;
   name: string;
   email: string;
-  role: 'student' | 'parent' | 'teacher' | 'counselor';
+  role: 'student' | 'counsellor';
   onboardingComplete: boolean;
   profile?: any;
+  specialization?: string;
   token: string;
 }
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  signup: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signup: (name: string, email: string, password: string, role?: string) => Promise<{ success: boolean; error?: string }>;
+  sendOtp: (name: string, email: string, password: string, role: string) => Promise<{ success: boolean; error?: string; otp?: string }>;
+  verifyOtp: (email: string, otp: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   updateProfile: (profileData: any) => Promise<boolean>;
   loading: boolean;
@@ -26,105 +29,118 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch {
-        localStorage.removeItem('user');
-      }
+    const stored = localStorage.getItem('cc_user');
+    if (stored) {
+      try { setUser(JSON.parse(stored)); } catch { localStorage.removeItem('cc_user'); }
     }
     setLoading(false);
   }, []);
 
-  const login = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  const sendOtp = useCallback(async (name: string, email: string, password: string, role: string) => {
     try {
-      const response = await fetch('/api/auth/login', {
+      const res = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password, role }),
+      });
+      const data = await res.json();
+      if (res.ok) return { success: true, otp: data.otp }; // otp only returned in dev when email not configured
+      return { success: false, error: data.message };
+    } catch {
+      return { success: false, error: 'Cannot connect to server' };
+    }
+  }, []);
+
+  const verifyOtp = useCallback(async (email: string, otp: string) => {
+    try {
+      const res = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setUser(data);
+        localStorage.setItem('cc_user', JSON.stringify(data));
+        return { success: true };
+      }
+      return { success: false, error: data.message };
+    } catch {
+      return { success: false, error: 'Cannot connect to server' };
+    }
+  }, []);
+
+  const login = useCallback(async (email: string, password: string) => {
+    try {
+      const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-
-      const data = await response.json();
-
-      if (response.ok) {
+      const data = await res.json();
+      if (res.ok) {
         setUser(data);
-        localStorage.setItem('user', JSON.stringify(data));
+        localStorage.setItem('cc_user', JSON.stringify(data));
         return { success: true };
-      } else {
-        return { success: false, error: data.message || 'Login failed' };
       }
+      return { success: false, error: data.message };
     } catch {
-      return { success: false, error: 'Could not connect to server. Ensure backend is running.' };
+      return { success: false, error: 'Cannot connect to server. Ensure backend is running.' };
     }
   }, []);
 
-  const signup = useCallback(async (name: string, email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  const signup = useCallback(async (name: string, email: string, password: string, role = 'student') => {
     try {
-      const response = await fetch('/api/auth/signup', {
+      const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, role }),
       });
-
-      const data = await response.json();
-
-      if (response.ok) {
+      const data = await res.json();
+      if (res.ok) {
         setUser(data);
-        localStorage.setItem('user', JSON.stringify(data));
+        localStorage.setItem('cc_user', JSON.stringify(data));
         return { success: true };
-      } else {
-        return { success: false, error: data.message || 'Signup failed' };
       }
+      return { success: false, error: data.message };
     } catch {
-      return { success: false, error: 'Could not connect to server. Ensure backend is running.' };
+      return { success: false, error: 'Cannot connect to server.' };
     }
   }, []);
 
   const logout = useCallback(() => {
     setUser(null);
-    localStorage.removeItem('user');
+    localStorage.removeItem('cc_user');
   }, []);
 
-  const updateProfile = useCallback(async (profileData: any): Promise<boolean> => {
+  const updateProfile = useCallback(async (profileData: any) => {
     if (!user) return false;
-
     try {
-      const response = await fetch('/api/auth/profile', {
+      const res = await fetch('/api/auth/profile', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user.token}`
-        },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${user.token}` },
         body: JSON.stringify({ profile: profileData }),
       });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        const updatedUser = { ...data, token: user.token };
-        setUser(updatedUser);
-        localStorage.setItem('user', JSON.stringify(updatedUser));
+      const data = await res.json();
+      if (res.ok) {
+        const updated = { ...data, token: user.token };
+        setUser(updated);
+        localStorage.setItem('cc_user', JSON.stringify(updated));
         return true;
       }
       return false;
-    } catch (error) {
-      console.error('Profile update failed', error);
-      return false;
-    }
+    } catch { return false; }
   }, [user]);
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, updateProfile, loading }}>
+    <AuthContext.Provider value={{ user, login, signup, sendOtp, verifyOtp, logout, updateProfile, loading }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be inside AuthProvider');
+  return ctx;
 };

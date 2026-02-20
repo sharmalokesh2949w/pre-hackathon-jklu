@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
-  TrendingUp, Target, BookOpen, Zap, ArrowRight, Award,
-  Brain, Lightbulb
+  TrendingUp, Target, Zap, ArrowRight, Award,
+  Lightbulb, Users
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
 import { useAuth } from '../context/AuthContext';
@@ -46,9 +46,8 @@ const Dashboard: React.FC = () => {
 
   const quickActions = [
     { icon: Target, label: 'Compare Careers', desc: 'Side-by-side analysis', route: '/compare', color: 'indigo' },
-    { icon: Brain, label: 'What-If Simulator', desc: 'Explore scenarios', route: '/simulator', color: 'teal' },
-    { icon: TrendingUp, label: 'Growth Tracker', desc: 'Track your progress', route: '/growth', color: 'emerald' },
-    { icon: BookOpen, label: 'Assessment', desc: 'Discover strengths', route: '/skills', color: 'amber' },
+    { icon: TrendingUp, label: 'Growth Tracker', desc: 'Log your real growth', route: '/growth', color: 'emerald' },
+    { icon: Users, label: 'Find Counsellor', desc: 'Connect with experts', route: '/counsellor', color: 'teal' },
   ];
 
   return (

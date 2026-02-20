@@ -14,24 +14,25 @@ const Navbar: React.FC = () => {
             Career<span className="bg-gradient-to-r from-indigo-600 to-teal-500 bg-clip-text text-transparent">Cube</span>
           </h1>
           <nav className="hidden md:flex items-center gap-0.5">
-            {[
-              { path: '/', label: 'AI Analysis' },
-              { path: '/dashboard', label: 'Dashboard' },
-              { path: '/mentor', label: 'AI Mentor' },
-              { path: '/roadmap', label: 'Roadmap' },
-            ].map(({ path, label }) => (
-              <NavLink
-                key={path}
-                to={path}
-                end={path === '/'}
-                className={({ isActive }) =>
-                  `px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${isActive ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
-                  }`
-                }
-              >
-                {label}
+            {user?.role === 'counsellor' ? (
+              <NavLink to="/" end className={({ isActive }) =>
+                `px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${isActive ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}>
+                Dashboard
               </NavLink>
-            ))}
+            ) : (
+              [
+                { path: '/', label: 'AI Analysis' },
+                { path: '/dashboard', label: 'Dashboard' },
+                { path: '/mentor', label: 'AI Mentor' },
+                { path: '/roadmap', label: 'Roadmap' },
+              ].map(({ path, label }) => (
+                <NavLink key={path} to={path} end={path === '/'}
+                  className={({ isActive }) =>
+                    `px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${isActive ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}>
+                  {label}
+                </NavLink>
+              ))
+            )}
           </nav>
         </div>
 

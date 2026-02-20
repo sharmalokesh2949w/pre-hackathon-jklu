@@ -5,11 +5,10 @@ import {
   MessageSquare,
   Map,
   User,
-  Award,
   GitCompare,
-  FlaskConical,
   TrendingUp,
   Sparkles,
+  Users,
 } from 'lucide-react';
 
 const navItems = [
@@ -17,10 +16,9 @@ const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', primary: false },
   { to: '/mentor', icon: MessageSquare, label: 'AI Mentor', primary: false },
   { to: '/roadmap', icon: Map, label: 'Roadmap', primary: false },
-  { to: '/skills', icon: Award, label: 'Assessment', primary: false },
   { to: '/compare', icon: GitCompare, label: 'Compare', primary: false },
-  { to: '/simulator', icon: FlaskConical, label: 'Simulator', primary: false },
   { to: '/growth', icon: TrendingUp, label: 'Growth', primary: false },
+  { to: '/counsellor', icon: Users, label: 'Counsellor', primary: false },
   { to: '/profile', icon: User, label: 'Profile', primary: false },
 ];
 
