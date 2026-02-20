@@ -24,6 +24,14 @@ const userSchema = new mongoose.Schema({
     enum: ['student', 'parent', 'teacher', 'counselor'],
     default: 'student'
   },
+  onboardingComplete: {
+    type: Boolean,
+    default: false
+  },
+  profile: {
+    type: Object,
+    default: null
+  },
   createdAt: {
     type: Date,
     default: Date.now

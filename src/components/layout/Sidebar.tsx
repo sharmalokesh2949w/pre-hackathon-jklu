@@ -50,14 +50,6 @@ const Sidebar: React.FC = () => {
           <span className="font-medium text-sm">Help Center</span>
         </button>
       </div>
-
-      <div className="mt-6 p-4 rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 shadow-lg shadow-sky-500/20">
-        <h3 className="text-white font-bold text-sm mb-1">Upgrade to Pro</h3>
-        <p className="text-sky-100 text-xs mb-3">Get advanced assessments and industry insights.</p>
-        <button className="w-full py-2 bg-white text-sky-600 rounded-lg text-xs font-bold hover:bg-sky-50 transition-colors">
-          Explore Plans
-        </button>
-      </div>
     </aside>
   );
 };

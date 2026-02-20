@@ -43,34 +43,41 @@ const skillData = [
   { subject: 'Science', A: 65, fullMark: 150 },
 ];
 
+import { useAuth } from '../context/AuthContext';
+
 const Dashboard: React.FC = () => {
+  const { user } = useAuth();
+  const profile = user?.profile || {};
+
   return (
     <div className="p-6 space-y-6">
       {/* Welcome Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold">Welcome back, <span className="gradient-text">Alex!</span> 👋</h2>
-          <p className="text-slate-400">Your career journey is 72% mapped. Keep going!</p>
+          <h2 className="text-3xl font-bold">Welcome back, <span className="gradient-text">{user?.name?.split(' ')[0] || 'Student'}!</span> 👋</h2>
+          <p className="text-slate-400">Your profile is {user?.onboardingComplete ? 'fully' : 'partially'} mapped. Let's explore your future!</p>
         </div>
         <div className="flex items-center gap-3">
           <button className="btn-secondary flex items-center gap-2">
             <TrendingUp className="w-4 h-4" />
             View Report
           </button>
-          <button className="btn-primary flex items-center gap-2">
-            <Sparkles className="w-4 h-4" />
-            Resume Assessment
-          </button>
+          {!user?.onboardingComplete && (
+            <button className="btn-primary flex items-center gap-2">
+              <Sparkles className="w-4 h-4" />
+              Complete Onboarding
+            </button>
+          )}
         </div>
       </div>
 
       {/* Top Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { icon: Brain, label: 'Top Aptitude', value: 'Logical Reasoning', color: 'text-blue-400', bg: 'bg-blue-400/10' },
-          { icon: Target, label: 'Success Match', value: 'Data Science (89%)', color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
-          { icon: GraduationCap, label: 'Study Focus', value: 'PCM + CS', color: 'text-amber-400', bg: 'bg-amber-400/10' },
-          { icon: Briefcase, label: 'Internships', value: '2 Recommended', color: 'text-purple-400', bg: 'bg-purple-400/10' },
+          { icon: Brain, label: 'Top Aptitude', value: profile.aptitude?.[0] || 'Pending Analysis', color: 'text-blue-400', bg: 'bg-blue-400/10' },
+          { icon: Target, label: 'Success Match', value: profile.interests?.[0] ? `${profile.interests[0]} AI` : 'Data Science (89%)', color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
+          { icon: GraduationCap, label: 'Study Focus', value: profile.subjects?.[0] ? `${profile.subjects[0]} Expert` : 'Science Explorer', color: 'text-amber-400', bg: 'bg-amber-400/10' },
+          { icon: Briefcase, label: 'Learning Style', value: profile.learningStyle || 'Analytical Focus', color: 'text-purple-400', bg: 'bg-purple-400/10' },
         ].map((stat, i) => (
           <div key={i} className="glass-card p-4 rounded-2xl flex items-center gap-4">
             <div className={`p-3 rounded-xl ${stat.bg}`}>

@@ -8,6 +8,7 @@ import Profile from './pages/Profile';
 import Assessment from './pages/Assessment';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import Onboarding from './pages/Onboarding';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 
@@ -20,6 +21,12 @@ const AppContent = () => {
         <div className="w-8 h-8 border-4 border-sky-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
+  }
+
+  // Handle Onboarding redirection
+  const isInternalPage = window.location.pathname !== '/login' && window.location.pathname !== '/signup';
+  if (user && !user.onboardingComplete && window.location.pathname !== '/onboarding' && isInternalPage) {
+    return <Navigate to="/onboarding" replace />;
   }
 
   return (
@@ -37,6 +44,11 @@ const AppContent = () => {
             {/* Public Routes */}
             <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
             <Route path="/signup" element={!user ? <Signup /> : <Navigate to="/" />} />
+            <Route path="/onboarding" element={
+              <ProtectedRoute>
+                <Onboarding />
+              </ProtectedRoute>
+            } />
 
             {/* Protected Routes */}
             <Route path="/" element={

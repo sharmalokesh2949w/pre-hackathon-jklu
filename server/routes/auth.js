@@ -1,6 +1,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { protect } = require('../middleware/auth');
 const router = express.Router();
 
 // Generate JWT
@@ -36,6 +37,7 @@ router.post('/signup', async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        onboardingComplete: user.onboardingComplete,
         token: generateToken(user._id),
       });
     } else {
@@ -61,10 +63,42 @@ router.post('/login', async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        onboardingComplete: user.onboardingComplete,
+        profile: user.profile,
         token: generateToken(user._id),
       });
     } else {
       res.status(401).json({ message: 'Invalid email or password' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// @desc    Update user profile
+// @route   PUT /api/auth/profile
+// @access  Private
+router.put('/profile', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (user) {
+      user.profile = req.body.profile || user.profile;
+      user.onboardingComplete = true;
+
+      const updatedUser = await user.save();
+
+      res.json({
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        onboardingComplete: updatedUser.onboardingComplete,
+        profile: updatedUser.profile,
+        token: generateToken(updatedUser._id),
+      });
+    } else {
+      res.status(404).json({ message: 'User not found' });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
