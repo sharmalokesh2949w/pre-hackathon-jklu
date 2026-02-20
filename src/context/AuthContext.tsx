@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 interface User {
   _id: string;
@@ -12,7 +12,8 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (userData: User) => void;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signup: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   updateProfile: (profileData: any) => Promise<boolean>;
   loading: boolean;
@@ -27,28 +28,71 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch {
+        localStorage.removeItem('user');
+      }
     }
     setLoading(false);
   }, []);
 
-  const login = (userData: User) => {
-    setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
-  };
+  const login = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
 
-  const logout = () => {
+      const data = await response.json();
+
+      if (response.ok) {
+        setUser(data);
+        localStorage.setItem('user', JSON.stringify(data));
+        return { success: true };
+      } else {
+        return { success: false, error: data.message || 'Login failed' };
+      }
+    } catch {
+      return { success: false, error: 'Could not connect to server. Ensure backend is running.' };
+    }
+  }, []);
+
+  const signup = useCallback(async (name: string, email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setUser(data);
+        localStorage.setItem('user', JSON.stringify(data));
+        return { success: true };
+      } else {
+        return { success: false, error: data.message || 'Signup failed' };
+      }
+    } catch {
+      return { success: false, error: 'Could not connect to server. Ensure backend is running.' };
+    }
+  }, []);
+
+  const logout = useCallback(() => {
     setUser(null);
     localStorage.removeItem('user');
-  };
+  }, []);
 
-  const updateProfile = async (profileData: any) => {
+  const updateProfile = useCallback(async (profileData: any): Promise<boolean> => {
     if (!user) return false;
-    
+
     try {
       const response = await fetch('/api/auth/profile', {
         method: 'PUT',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${user.token}`
         },
@@ -58,8 +102,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const data = await response.json();
 
       if (response.ok) {
-        setUser(data);
-        localStorage.setItem('user', JSON.stringify(data));
+        const updatedUser = { ...data, token: user.token };
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
         return true;
       }
       return false;
@@ -67,10 +112,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Profile update failed', error);
       return false;
     }
-  };
+  }, [user]);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, updateProfile, loading }}>
+    <AuthContext.Provider value={{ user, login, signup, logout, updateProfile, loading }}>
       {children}
     </AuthContext.Provider>
   );

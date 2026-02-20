@@ -1,6 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Sparkles, Languages, Info, ExternalLink } from 'lucide-react';
-
+import { motion, AnimatePresence } from 'framer-motion';
+import { MessageSquare, Send, Bot, User, Sparkles, BrainCircuit, ArrowLeft, Lightbulb, Shield } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { getSmartResponse } from '../utils/mentorResponses';
 
 interface Message {
   id: string;
@@ -10,179 +13,168 @@ interface Message {
   suggestions?: string[];
 }
 
-import { useAuth } from '../context/AuthContext';
-import { mapProfileToCareer } from '../utils/careerUtils';
+const scenarioCards = [
+  { title: "I'm confused about my career", icon: BrainCircuit, color: 'indigo' },
+  { title: "Parents want engineering but I love design", icon: Lightbulb, color: 'amber' },
+  { title: "My marks are low, what can I do?", icon: Sparkles, color: 'teal' },
+  { title: "Best colleges for CS in India?", icon: Shield, color: 'emerald' },
+];
 
-const AIMentor: React.FC = () => {
+const Mentor: React.FC = () => {
   const { user } = useAuth();
-  const firstName = user?.name?.split(' ')[0] || 'there';
-  const career = mapProfileToCareer(user?.profile);
-
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       type: 'bot',
-      content: `Hey ${firstName}! I'm your AI Career Mentor. I've analyzed your profile and I see you have a strong affinity for ${career.title}. Want to understand what a day in the life of a ${career.title} looks like, or have other questions?`,
+      content: `Hey ${user?.name?.split(' ')[0] || 'there'}! 👋 Main hoon tumhara AI Career Mentor. Kuch bhi poochho about careers, exams, colleges, stream selection, ya study tips. I'm here to help! 🎯`,
       timestamp: new Date(),
-      suggestions: [`Day in life of ${career.title}`, "College recommendations", "Scholarships available"]
+      suggestions: ['What career suits me?', 'JEE vs NEET?', 'Free learning resources']
     }
   ]);
   const [input, setInput] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSend = () => {
-    if (!input.trim()) return;
+  const handleSend = (text?: string) => {
+    const messageText = text || input;
+    if (!messageText.trim()) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       type: 'user',
-      content: input,
+      content: messageText,
       timestamp: new Date()
     };
 
     setMessages(prev => [...prev, userMessage]);
     setInput('');
-    setIsTyping(true);
 
-    // Simulated AI response
+    // Get smart offline response
     setTimeout(() => {
+      const { reply, suggestions } = getSmartResponse(messageText);
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'bot',
-        content: "That's a great question! For a Data Scientist path, choosing PCM (Physics, Chemistry, Maths) in Class 11 is highly recommended. It builds the logical foundation you'll need for algorithms later. Your current score in Math (94/100) shows you're already on the right track! Shall we look at a Roadmap for this?",
+        content: reply,
         timestamp: new Date(),
-        suggestions: ["Show PCM Roadmap", "What about Statistics?", "Alternative paths"]
+        suggestions
       };
       setMessages(prev => [...prev, botMessage]);
-      setIsTyping(false);
-    }, 1500);
+    }, 600);
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-120px)] glass-card rounded-3xl overflow-hidden border border-white/5 bg-slate-900/40">
-      {/* Chat Header */}
-      <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/5">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-sky-500/20 rounded-full flex items-center justify-center border border-sky-500/30">
-            <Bot className="text-sky-400 w-6 h-6" />
-          </div>
-          <div>
-            <h3 className="font-bold text-sm">EduPath AI Mentor</h3>
-            <div className="flex items-center gap-1.5 ">
-              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Online | Hinglish Mode Active</span>
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="p-6 lg:p-10 min-h-screen flex flex-col">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-4">
+          <button onClick={() => navigate('/')} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+            <ArrowLeft className="w-5 h-5 text-slate-400" />
+          </button>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center border border-indigo-100">
+              <Bot className="text-indigo-500 w-7 h-7" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-extrabold text-slate-800">AI Career Mentor</h2>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Online • Smart Responses</span>
+              </div>
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button className="p-2 hover:bg-white/5 rounded-lg text-slate-400 transition-colors" title="Change Language">
-            <Languages className="w-5 h-5" />
-          </button>
-          <button className="p-2 hover:bg-white/5 rounded-lg text-slate-400 transition-colors">
-            <Info className="w-5 h-5" />
-          </button>
-        </div>
       </div>
 
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
-        {messages.map((message) => (
-          <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[80%] flex gap-3 ${message.type === 'user' ? 'flex-row-reverse' : ''}`}>
-              <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center ${
-                message.type === 'user' ? 'bg-indigo-500' : 'bg-slate-800 border border-white/10'
-              }`}>
-                {message.type === 'user' ? <User className="w-4 h-4 text-white" /> : <Bot className="w-4 h-4 text-sky-400" />}
+      {/* Scenario Cards */}
+      {messages.length <= 1 && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+          {scenarioCards.map((card, i) => (
+            <motion.button
+              key={i}
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => handleSend(card.title)}
+              className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-indigo-200 text-left transition-all group flex items-center gap-4"
+            >
+              <div className={`p-3 rounded-xl bg-${card.color}-50`}>
+                <card.icon className={`w-5 h-5 text-${card.color}-500`} />
               </div>
-              <div className="space-y-4">
-                <div className={`p-4 rounded-2xl ${
-                  message.type === 'user' 
-                    ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/10' 
-                    : 'bg-white/5 border border-white/5 text-slate-200'
-                }`}>
-                  <p className="text-sm leading-relaxed">{message.content}</p>
+              <span className="font-bold text-sm text-slate-600 group-hover:text-slate-800">{card.title}</span>
+            </motion.button>
+          ))}
+        </motion.div>
+      )}
+
+      {/* Chat Messages */}
+      <div className="flex-1 bg-white rounded-3xl border border-slate-200 shadow-sm p-6 overflow-y-auto space-y-4 max-h-[60vh]">
+        <AnimatePresence>
+          {messages.map((msg) => (
+            <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div className="max-w-[80%] space-y-2">
+                <div className="flex items-start gap-3">
+                  {msg.type === 'bot' && (
+                    <div className="w-8 h-8 bg-indigo-50 rounded-full flex items-center justify-center flex-shrink-0 mt-1 border border-indigo-100">
+                      <Bot className="w-4 h-4 text-indigo-500" />
+                    </div>
+                  )}
+                  <div className={`p-4 rounded-3xl text-sm leading-relaxed whitespace-pre-line ${msg.type === 'user'
+                      ? 'bg-gradient-to-r from-indigo-500 to-teal-500 text-white'
+                      : 'bg-slate-50 border border-slate-200 text-slate-700'
+                    }`}>
+                    {msg.content}
+                  </div>
+                  {msg.type === 'user' && (
+                    <div className="w-8 h-8 bg-teal-50 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                      <User className="w-4 h-4 text-teal-600" />
+                    </div>
+                  )}
                 </div>
-                
-                {message.suggestions && (
-                  <div className="flex flex-wrap gap-2">
-                    {message.suggestions.map((suggestion, i) => (
-                      <button 
-                        key={i}
-                        onClick={() => {
-                          setInput(suggestion);
-                          // We don't auto-send for demo sake, but we could
-                        }}
-                        className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold text-sky-400 hover:bg-sky-500/10 hover:border-sky-500/30 transition-all uppercase tracking-wider"
-                      >
-                        {suggestion}
+                {msg.suggestions && (
+                  <div className={`flex flex-wrap gap-2 ${msg.type === 'bot' ? 'ml-11' : 'mr-11 justify-end'}`}>
+                    {msg.suggestions.map((s, i) => (
+                      <button key={i} onClick={() => handleSend(s)} className="px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-xs font-bold text-indigo-600 hover:bg-indigo-100 transition-all">
+                        {s}
                       </button>
                     ))}
                   </div>
                 )}
               </div>
-            </div>
-          </div>
-        ))}
-        {isTyping && (
-          <div className="flex justify-start">
-            <div className="flex gap-3">
-              <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center border border-white/10">
-                <Bot className="w-4 h-4 text-sky-400" />
-              </div>
-              <div className="p-4 rounded-2xl bg-white/5 border border-white/5 flex gap-1 items-center">
-                <span className="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce"></span>
-                <span className="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce [animation-delay:0.2s]"></span>
-                <span className="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce [animation-delay:0.4s]"></span>
-              </div>
-            </div>
-          </div>
-        )}
+            </motion.div>
+          ))}
+        </AnimatePresence>
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area */}
-      <div className="p-4 border-t border-white/5 bg-white/5">
-        <div className="flex gap-4">
-          <div className="flex-1 relative">
-            <input 
-              type="text" 
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-              placeholder="Ask anything about your career..."
-              className="w-full bg-slate-800/50 border border-white/10 rounded-2xl px-5 py-3 text-sm focus:outline-none focus:border-sky-500/50 transition-all pr-12"
-            />
-            <button 
-              onClick={handleSend}
-              className="absolute right-2 top-2 p-2 bg-sky-500 text-white rounded-xl hover:bg-sky-600 transition-all disabled:opacity-50"
-              disabled={!input.trim() || isTyping}
-            >
-              <Send className="w-4 h-4" />
-            </button>
-          </div>
+      {/* Input */}
+      <div className="mt-6">
+        <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm flex gap-3">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+            placeholder="Ask anything about career, exams, colleges..."
+            className="flex-1 bg-transparent text-sm focus:outline-none px-2 text-slate-700 placeholder:text-slate-400"
+          />
+          <button
+            onClick={() => handleSend()}
+            disabled={!input.trim()}
+            className="px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-teal-500 text-white rounded-2xl font-bold text-sm hover:opacity-90 transition-all disabled:opacity-50 flex items-center gap-2"
+          >
+            <Send className="w-4 h-4" /> Send
+          </button>
         </div>
-        <div className="mt-3 flex items-center justify-center gap-6">
-          <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-bold uppercase">
-            <Sparkles className="w-3 h-3 text-sky-400" />
-            AI Guidance
-          </div>
-          <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-bold uppercase">
-            <ExternalLink className="w-3 h-3 text-sky-400" />
-            Source Verified
-          </div>
+        <div className="mt-3 flex items-center justify-center gap-2 text-[9px] text-slate-400 font-bold uppercase tracking-widest">
+          <Shield className="w-3 h-3" /> Smart Responses • Child-safe • Hinglish Mode
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
-export default AIMentor;
+export default Mentor;
