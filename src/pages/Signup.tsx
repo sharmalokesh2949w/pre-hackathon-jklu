@@ -73,7 +73,7 @@ const Signup: React.FC = () => {
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     className="w-full bg-slate-900 border border-white/10 rounded-2xl px-12 py-3.5 text-sm focus:outline-none focus:border-sky-500/50 transition-all font-medium"
-                    placeholder="Alex Jenkins"
+                    placeholder="Enter your name"
                   />
                 </div>
               </div>

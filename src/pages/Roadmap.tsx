@@ -1,44 +1,29 @@
 import React from 'react';
 import { 
-  Calendar, 
-  ChevronRight, 
-  MapPin, 
   Clock, 
   BookOpen, 
-  Award,
-  Link as LinkIcon,
   Star,
-  Zap
+  ChevronRight,
+  Link as LinkIcon
 } from 'lucide-react';
 
+import { useAuth } from '../context/AuthContext';
+import { mapProfileToCareer } from '../utils/careerUtils';
+
 const Roadmap: React.FC = () => {
-  const steps = [
-    {
-      title: 'Phase 1: Foundation (Class 10-11)',
-      status: 'Current',
-      items: [
-        { label: 'Master PCM Basics', detail: 'Focus on Calculus & Kinematics', icon: BookOpen, completed: false },
-        { label: 'Python for Beginners', detail: 'Logic building for AI foundations', icon: Zap, completed: true },
-        { label: 'Regional Math Olympiad', detail: 'Prep for competitive edge', icon: Award, completed: false },
-      ]
-    },
-    {
-      title: 'Phase 2: Specialization (Class 12)',
-      status: 'Coming Soon',
-      items: [
-        { label: 'JEE Mains & Advanced', detail: 'Target Top IITs/NITs', icon: MapPin, completed: false },
-        { label: 'Data Science Internship', detail: 'Project-based early exposure', icon: Star, completed: false },
-        { label: 'Board Exams Prep', detail: 'Aim for 95% aggregate', icon: Calendar, completed: false },
-      ]
-    }
-  ];
+  const { user } = useAuth();
+  const career = mapProfileToCareer(user?.profile);
+  const steps = career.roadmapPhases.map((phase, idx) => ({
+    ...phase,
+    status: idx === 0 ? 'Current' : 'Coming Soon'
+  }));
 
   return (
     <div className="p-6 space-y-8">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold">Your <span className="gradient-text">Success Roadmap</span></h2>
-          <p className="text-slate-400">Personalized path for <span className="text-sky-400 italic">AI Research Scientist</span></p>
+          <p className="text-slate-400">Personalized path for <span className="text-sky-400 italic">{career.title}</span></p>
         </div>
         <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 text-emerald-400 rounded-full border border-emerald-500/20">
           <Clock className="w-4 h-4" />
@@ -70,7 +55,7 @@ const Roadmap: React.FC = () => {
                   <div key={j} className="glass-card p-5 rounded-2xl group hover:border-sky-500/30 transition-all cursor-pointer">
                     <div className="flex items-start justify-between mb-4">
                       <div className={`p-2 rounded-lg ${item.completed ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-800 text-slate-400'}`}>
-                        <item.icon className="w-5 h-5" />
+                        <BookOpen className="w-5 h-5" />
                       </div>
                       {item.completed && (
                         <div className="px-2 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-bold rounded-lg uppercase">

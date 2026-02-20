@@ -10,14 +10,21 @@ interface Message {
   suggestions?: string[];
 }
 
+import { useAuth } from '../context/AuthContext';
+import { mapProfileToCareer } from '../utils/careerUtils';
+
 const AIMentor: React.FC = () => {
+  const { user } = useAuth();
+  const firstName = user?.name?.split(' ')[0] || 'there';
+  const career = mapProfileToCareer(user?.profile);
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       type: 'bot',
-      content: "Hey Alex! I'm your AI Career Mentor. I've analyzed your profile and I see you have a 89% affinity for Data Science. Want to understand what a day in the life of a Data Scientist looks like, or have other questions?",
+      content: `Hey ${firstName}! I'm your AI Career Mentor. I've analyzed your profile and I see you have a strong affinity for ${career.title}. Want to understand what a day in the life of a ${career.title} looks like, or have other questions?`,
       timestamp: new Date(),
-      suggestions: ["Day in life of Data Scientist", "PCM vs Commerce for AI", "Top colleges for CS", "Scholarships available"]
+      suggestions: [`Day in life of ${career.title}`, "College recommendations", "Scholarships available"]
     }
   ]);
   const [input, setInput] = useState('');

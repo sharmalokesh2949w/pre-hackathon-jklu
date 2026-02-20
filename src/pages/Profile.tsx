@@ -10,7 +10,21 @@ import {
   Share2
 } from 'lucide-react';
 
+import { useAuth } from '../context/AuthContext';
+import { mapProfileToCareer } from '../utils/careerUtils';
+
 const Profile: React.FC = () => {
+  const { user } = useAuth();
+  const profile = user?.profile || {};
+  const career = mapProfileToCareer(profile);
+
+  const profileTraits = [
+    { label: 'Aptitude', value: profile.aptitude?.[0] || 'Logical-Mathematical', score: 92, icon: Target },
+    { label: 'Interests', value: profile.interests?.[0] || 'Technology & Design', score: 85, icon: Heart },
+    { label: 'Learning Style', value: profile.learningStyle || 'Visual-Kinesthetic', score: 78, icon: Zap },
+    { label: 'Personality', value: 'Architect (INTJ-T)', score: 88, icon: User },
+  ];
+
   return (
     <div className="p-6 space-y-8">
       <div className="flex flex-col md:flex-row items-start gap-8">
@@ -22,8 +36,8 @@ const Profile: React.FC = () => {
             </div>
           </div>
           <div className="mt-4 text-center">
-            <h2 className="text-xl font-bold">Alex Jenkins</h2>
-            <p className="text-slate-400 text-sm">Class 11-A | Science</p>
+            <h2 className="text-xl font-bold">{user?.name || 'User'}</h2>
+            <p className="text-slate-400 text-sm uppercase font-bold tracking-wider">{user?.role || 'Student'} | {profile.subjects?.[0] || 'Science'}</p>
           </div>
           <div className="mt-4 flex gap-2">
             <div className="flex flex-col items-center px-3 py-2 glass-card rounded-xl">
@@ -45,16 +59,11 @@ const Profile: React.FC = () => {
                 <Target className="text-sky-400 w-5 h-5" />
                 Multi-Dimensional Profile
               </h3>
-              <span className="text-xs text-slate-500 italic">Last Sync: 2 hours ago</span>
+              <span className="text-xs text-slate-500 italic">Last Sync: Live</span>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[
-                { label: 'Aptitude', value: 'Logical-Mathematical', score: 92, icon: Target },
-                { label: 'Interests', value: 'Technology & Design', score: 85, icon: Heart },
-                { label: 'Learning Style', value: 'Visual-Kinesthetic', score: 78, icon: Zap },
-                { label: 'Personality', value: 'Architect (INTJ-T)', score: 88, icon: User },
-              ].map((trait, i) => (
+              {profileTraits.map((trait, i) => (
                 <div key={i} className="p-4 rounded-2xl bg-white/5 border border-white/5">
                   <div className="flex items-center gap-3 mb-3">
                     <trait.icon className="w-4 h-4 text-sky-400" />
@@ -71,6 +80,7 @@ const Profile: React.FC = () => {
               ))}
             </div>
           </div>
+... (rest of the file content kept)
 
           <div className="glass-card p-6 rounded-3xl bg-indigo-500/5 border-indigo-500/10">
             <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
@@ -129,7 +139,7 @@ const Profile: React.FC = () => {
           </h3>
           <p className="text-sm text-slate-400 mb-6">AI-generated non-technical insights to help your parents understand your strengths.</p>
           <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 italic text-sm text-slate-300">
-            "Alex shows exceptional logical reasoning and a natural affinity for complex problem-solving. While academic marks in Math are high, the AI detects a 'Creativity-Logic' hybrid which is perfect for modern roles like Generative AI Design or Robotics Engineering."
+            "{user?.name?.split(' ')[0] || 'The student'} shows exceptional logical reasoning and a natural affinity for complex problem-solving. The AI detects a perfect fit for a career in {career.title}, leveraging their specific interests in {profile.interests?.[0] || 'the field'}."
           </div>
           <button className="w-full mt-4 py-3 rounded-2xl bg-amber-500 text-white font-bold text-sm shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2">
             <Share2 className="w-4 h-4" />
