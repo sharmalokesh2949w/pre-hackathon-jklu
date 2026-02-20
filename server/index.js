@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const authRoutes = require('./routes/auth');
+const chatRoutes = require('./routes/chat');
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use(cors({
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/chat', chatRoutes);
 
 app.get('/', (req, res) => {
   res.send('EduPath AI API is running...');
@@ -29,7 +31,7 @@ const connectDB = async () => {
     if (process.env.MONGODB_URI.includes('example.mongodb.net')) {
       console.warn('WARNING: Using placeholder MongoDB URI. Please update .env file.');
     }
-    
+
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('MongoDB Connected...');
   } catch (err) {
